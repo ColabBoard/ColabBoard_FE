@@ -2,9 +2,12 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useBoardTasks } from '../hooks/useBoardTasks'
 import { useSSE } from '../hooks/useSSE'
+import { usePresence } from '../hooks/usePresence'
 import { KanbanBoard } from './KanbanBoard'
 import { SSEStatusIndicator } from './SSEStatusIndicator'
+import { PresenceBar } from './PresenceBar'
 import { TaskDetailPanel } from '../../tasks/components/TaskDetailPanel'
+import { useAuthStore } from '../../../store/authStore'
 
 function BoardSkeleton() {
   return (
@@ -25,8 +28,14 @@ export function BoardPage() {
   const { id: workspaceId = '' } = useParams()
   const navigate = useNavigate()
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+  const uid = useAuthStore((s) => s.uid)
   const { data: tasks, isLoading, isError } = useBoardTasks(workspaceId)
-  const { status: sseStatus } = useSSE(workspaceId)
+  const { presentUserIds, handleConnected, handleJoined, handleLeft } = usePresence(workspaceId)
+  const { status: sseStatus } = useSSE(workspaceId, {
+    onConnected:      handleConnected,
+    onPresenceJoined: handleJoined,
+    onPresenceLeft:   handleLeft,
+  })
 
   return (
     <div style={{ padding: '1.75rem 1.5rem' }} className="animate-fade-in">
@@ -49,7 +58,10 @@ export function BoardPage() {
           </svg>
           Workspaces
         </button>
-        <SSEStatusIndicator status={sseStatus} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <PresenceBar userIds={presentUserIds} currentUserId={uid} />
+          <SSEStatusIndicator status={sseStatus} />
+        </div>
       </div>
 
       {isLoading && <BoardSkeleton />}

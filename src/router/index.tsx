@@ -7,6 +7,7 @@ import { AppLayout } from '../components/layout/AppLayout'
 import { useAuthStore } from '../store/authStore'
 import { WorkspacesPage } from '../features/workspaces/components/WorkspacesPage'
 import { BoardPage } from '../features/board/components/BoardPage'
+import { ProfilePage } from '../features/profile/components/ProfilePage'
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="/workspaces" replace /> },
       { path: 'workspaces', element: <WorkspacesPage /> },
       { path: 'workspaces/:id', element: <BoardPage /> },
+      { path: 'profile', element: <ProfilePage /> },
       { path: 'profile/setup', element: <ProfileSetupPage /> },
     ],
   },

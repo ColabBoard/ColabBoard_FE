@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { format } from 'date-fns'
 import { Avatar } from '../../../components/ui/Avatar'
 import type { Task, TaskPriority } from '../types'
+import type { Profile } from '../../profile/types'
 
 const priorityConfig: Record<TaskPriority, { cssColor: string; label: string }> = {
   LOW:    { cssColor: 'var(--cb-dim)',   label: 'Low'  },
@@ -13,9 +14,10 @@ const priorityConfig: Record<TaskPriority, { cssColor: string; label: string }> 
 interface Props {
   task: Task
   onOpenDetail: (id: string) => void
+  profileMap?: Record<string, Profile | null>
 }
 
-export function TaskCard({ task, onOpenDetail }: Props) {
+export function TaskCard({ task, onOpenDetail, profileMap }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id })
 
@@ -26,6 +28,11 @@ export function TaskCard({ task, onOpenDetail }: Props) {
   }
 
   const priority = priorityConfig[task.priority]
+
+  const assigneeUid = task.assignee?.uid
+  const assigneeProfile = assigneeUid && profileMap ? profileMap[assigneeUid] : null
+  const assigneeName = assigneeProfile?.full_name ?? assigneeProfile?.username ?? task.assignee?.displayName ?? ''
+  const assigneeAvatar = assigneeProfile?.avatar_url ?? task.assignee?.avatarUrl
 
   return (
     <div
@@ -99,12 +106,14 @@ export function TaskCard({ task, onOpenDetail }: Props) {
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.125rem' }}>
-          <Avatar name={task.assignee.displayName} avatarUrl={task.assignee.avatarUrl} size="sm" />
-          <span className="font-outfit" style={{ fontSize: '0.6875rem', color: 'var(--cb-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {task.assignee.displayName}
-          </span>
-        </div>
+        {assigneeName && assigneeName !== 'Unassigned' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.125rem' }}>
+            <Avatar name={assigneeName} avatarUrl={assigneeAvatar} size="sm" />
+            <span className="font-outfit" style={{ fontSize: '0.6875rem', color: 'var(--cb-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {assigneeName}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )

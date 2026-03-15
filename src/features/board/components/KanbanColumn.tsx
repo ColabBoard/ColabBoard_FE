@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { TaskCard } from './TaskCard'
 import type { Task, TaskStatus } from '../types'
+import type { Profile } from '../../profile/types'
 
 const columnMeta: Record<TaskStatus, { label: string; dot: string; cssKey: string }> = {
   TODO:  { label: 'To Do',       dot: 'var(--cb-amber)',  cssKey: 'todo'  },
@@ -20,9 +21,10 @@ interface Props {
   tasks: Task[]
   onOpenDetail: (id: string) => void
   onAddTask: () => void
+  profileMap: Record<string, Profile | null>
 }
 
-export function KanbanColumn({ status, tasks, onOpenDetail, onAddTask }: Props) {
+export function KanbanColumn({ status, tasks, onOpenDetail, onAddTask, profileMap }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
   const meta = columnMeta[status]
   const key = meta.cssKey
@@ -104,7 +106,7 @@ export function KanbanColumn({ status, tasks, onOpenDetail, onAddTask }: Props) 
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onOpenDetail={onOpenDetail} />
+            <TaskCard key={task.id} task={task} onOpenDetail={onOpenDetail} profileMap={profileMap} />
           ))}
         </SortableContext>
 

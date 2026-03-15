@@ -12,6 +12,7 @@ import { KanbanColumn } from './KanbanColumn'
 import { TaskCard } from './TaskCard'
 import { CreateTaskModal } from './CreateTaskModal'
 import { useUpdateTaskStatus } from '../hooks/useUpdateTaskStatus'
+import { useMemberProfiles } from '../../profile/hooks/useProfileById'
 import type { Task, TaskStatus } from '../types'
 
 const COLUMNS: TaskStatus[] = ['TODO', 'DOING', 'DONE']
@@ -26,6 +27,11 @@ export function KanbanBoard({ workspaceId, tasks, onOpenDetail }: Props) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [addingToColumn, setAddingToColumn] = useState<TaskStatus | null>(null)
   const updateStatus = useUpdateTaskStatus(workspaceId)
+
+  const assigneeUids = [...new Set(
+    Object.values(tasks).flat().map((t) => t.assignee?.uid).filter(Boolean) as string[]
+  )]
+  const { profileMap } = useMemberProfiles(assigneeUids)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -71,6 +77,7 @@ export function KanbanBoard({ workspaceId, tasks, onOpenDetail }: Props) {
             tasks={tasks[status]}
             onOpenDetail={onOpenDetail}
             onAddTask={() => setAddingToColumn(status)}
+            profileMap={profileMap}
           />
         ))}
       </div>
@@ -86,7 +93,7 @@ export function KanbanBoard({ workspaceId, tasks, onOpenDetail }: Props) {
       <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeTask && (
           <div style={{ transform: 'rotate(1.5deg)', filter: 'drop-shadow(0 16px 32px rgba(0,0,0,0.4))' }}>
-            <TaskCard task={activeTask} onOpenDetail={() => {}} />
+            <TaskCard task={activeTask} onOpenDetail={() => {}} profileMap={profileMap} />
           </div>
         )}
       </DragOverlay>

@@ -4,7 +4,8 @@ import type { Workspace } from '../types'
 import { useThemeStore } from '../../../store/themeStore'
 import { useAuthStore } from '../../../store/authStore'
 import { useDeleteWorkspace } from '../hooks/useDeleteWorkspace'
-import { MembersModal } from './MembersModal'
+import { MembersPanel } from './MembersPanel'
+import { ConfirmModal } from '../../../components/ui/ConfirmModal'
 
 const ACCENTS = [
   { color: '#7C6EFA', glowDark: 'rgba(124,110,250,0.08)', glowLight: 'rgba(91,76,240,0.07)', borderDark: 'rgba(124,110,250,0.55)', borderLight: 'rgba(91,76,240,0.35)' },
@@ -23,6 +24,7 @@ export function WorkspaceCard({ workspace }: { workspace: Workspace }) {
   const navigate = useNavigate()
   const [hovered, setHovered] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const theme = useThemeStore((s) => s.theme)
   const uid = useAuthStore((s) => s.uid)
   const isDark = theme === 'dark'
@@ -36,9 +38,7 @@ export function WorkspaceCard({ workspace }: { workspace: Workspace }) {
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (confirm(`Delete workspace "${workspace.name}"? This cannot be undone.`)) {
-      deleteWorkspace.mutate(workspace.id)
-    }
+    setShowDeleteConfirm(true)
   }
 
   const handleMembers = (e: React.MouseEvent) => {
@@ -192,10 +192,21 @@ export function WorkspaceCard({ workspace }: { workspace: Workspace }) {
       </button>
 
       {showMembers && (
-        <MembersModal
+        <MembersPanel
           workspace={workspace}
           isOwner={isOwner}
           onClose={() => setShowMembers(false)}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <ConfirmModal
+          title={`Delete "${workspace.name}"?`}
+          message="All tasks and members will be permanently removed. This action cannot be undone."
+          confirmLabel="Delete workspace"
+          isPending={deleteWorkspace.isPending}
+          onConfirm={() => deleteWorkspace.mutate(workspace.id, { onSuccess: () => setShowDeleteConfirm(false) })}
+          onCancel={() => setShowDeleteConfirm(false)}
         />
       )}
     </>

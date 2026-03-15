@@ -10,16 +10,33 @@ export interface CreateTaskRequest {
   status: string
   priority: string
   due_date?: string | null
+  assignee_id?: string
 }
 
 export function useCreateTask(workspaceId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateTaskRequest) =>
-      apiClient
+    mutationFn: async (data: CreateTaskRequest) => {
+      // MS always creates tasks as "pending" regardless of the status field.
+      // If a different status was requested, patch it immediately after creation.
+      const task = await apiClient
         .post<{ success: boolean; data: TaskApiDto }>('/tasks', data)
-        .then((r) => r.data.data),
+        .then((r) => r.data.data)
+
+      if (data.status !== 'pending' && data.status !== 'todo') {
+        await apiClient.patch(`/tasks/${task.id}/status`, {
+          status: data.status,
+          version: task.version,
+        })
+      }
+
+      if (data.assignee_id?.trim()) {
+        await apiClient.post(`/tasks/${task.id}/assign`, { user_id: data.assignee_id.trim() })
+      }
+
+      return task
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', workspaceId] })
       toast.success('Task created.')

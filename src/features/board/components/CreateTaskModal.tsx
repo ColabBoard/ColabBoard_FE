@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCreateTask } from '../hooks/useCreateTask'
 import { STATUS_TO_API } from '../../tasks/api/taskMapper'
+import { MemberSelect } from '../../../components/ui/MemberSelect'
 import type { TaskStatus } from '../types'
 
 interface Props {
@@ -27,6 +28,7 @@ export function CreateTaskModal({ workspaceId, initialStatus, onClose }: Props) 
   const [priority, setPriority] = useState('medium')
   const [status, setStatus] = useState<TaskStatus>(initialStatus)
   const [dueDate, setDueDate] = useState('')
+  const [assigneeId, setAssigneeId] = useState('')
 
   const createTask = useCreateTask(workspaceId)
 
@@ -40,6 +42,7 @@ export function CreateTaskModal({ workspaceId, initialStatus, onClose }: Props) 
         status: STATUS_TO_API[status],
         priority,
         due_date: dueDate ? `${dueDate}T00:00:00Z` : null,
+        assignee_id: assigneeId.trim() || undefined,
       },
       { onSuccess: onClose },
     )
@@ -148,6 +151,16 @@ export function CreateTaskModal({ workspaceId, initialStatus, onClose }: Props) 
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               className="cb-input"
+            />
+          </div>
+
+          <div>
+            <label className="cb-label">Assign to</label>
+            <MemberSelect
+              workspaceId={workspaceId}
+              value={assigneeId}
+              onChange={setAssigneeId}
+              disabled={createTask.isPending}
             />
           </div>
 

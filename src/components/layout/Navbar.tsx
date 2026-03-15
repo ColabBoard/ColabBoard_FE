@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/authStore'
 import { useProfileStore } from '../../store/profileStore'
 import { useProfile } from '../../features/profile/hooks/useProfile'
 import { useThemeStore } from '../../store/themeStore'
+import { useToggleTheme } from '../../hooks/useToggleTheme'
 
 function SunIcon() {
   return (
@@ -29,7 +30,8 @@ export function Navbar() {
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const clearProfile = useProfileStore((s) => s.clearProfile)
   const { data: profile } = useProfile()
-  const { theme, toggleTheme } = useThemeStore()
+  const theme = useThemeStore((s) => s.theme)
+  const toggleTheme = useToggleTheme()
 
   const handleLogout = () => {
     clearAuth()
@@ -100,18 +102,21 @@ export function Navbar() {
 
         {/* User */}
         {displayName && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            onClick={() => navigate('/profile')}
+            title="View profile"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              padding: '0.125rem',
+              borderRadius: '999px',
+              transition: 'opacity 0.15s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.75' }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+          >
             <Avatar name={displayName} avatarUrl={profile?.avatar_url} size="sm" />
-            {profile?.username && (
-              <span
-                className="font-outfit"
-                style={{ fontSize: '0.8125rem', color: 'var(--cb-muted)', display: 'none' }}
-                // shown via CSS on sm+
-              >
-                {profile.username}
-              </span>
-            )}
-          </div>
+          </button>
         )}
 
         {/* Sign out */}

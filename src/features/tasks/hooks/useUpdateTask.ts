@@ -16,6 +16,7 @@ export function useUpdateTask(taskId: string, workspaceId: string) {
     onSuccess: (updatedTask: Task) => {
       queryClient.setQueryData(['task', taskId], updatedTask)
       queryClient.invalidateQueries({ queryKey: ['tasks', workspaceId] })
+      toast.success('Task updated.')
     },
     onError: () => {
       toast.error('Failed to update task.')

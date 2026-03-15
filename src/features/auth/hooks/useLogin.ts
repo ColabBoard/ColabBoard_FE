@@ -15,7 +15,7 @@ export function useLogin() {
       apiClient.post<LoginResponse>('/auth/login', data).then((r) => r.data),
     onSuccess: (data, variables) => {
       const uid = getUidFromToken(data.idToken)
-      setAuth(data.idToken, uid, variables.email)
+      setAuth(data.idToken, uid, variables.email, data.refreshToken)
       navigate('/workspaces')
     },
     onError: () => {

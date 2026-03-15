@@ -7,19 +7,13 @@ export interface TaskApiDto {
   id: string
   title: string
   description: string
-  status: string          // 'todo' | 'in_progress' | 'done'
-  priority: string        // 'low' | 'medium' | 'high'
+  status: string
+  priority: string
   workspace_id: string
   version: number
   created_at: string
   due_date: string | null
-  assignee?: {
-    uid: string
-    display_name?: string
-    displayName?: string
-    avatar_url?: string
-    avatarUrl?: string
-  } | null
+  assignments?: { id: string; task_id: string; user_id: string; assigned_at: string }[]
 }
 
 const STATUS_FROM_API: Record<string, TaskStatus> = {
@@ -30,7 +24,7 @@ const STATUS_FROM_API: Record<string, TaskStatus> = {
 }
 
 export const STATUS_TO_API: Record<TaskStatus, string> = {
-  TODO: 'todo',
+  TODO: 'pending',
   DOING: 'in_progress',
   DONE: 'done',
 }
@@ -52,12 +46,8 @@ export function mapTask(dto: TaskApiDto): Task {
     version: dto.version ?? 0,
     dueDate: dto.due_date ?? null,
     createdAt: dto.created_at,
-    assignee: dto.assignee
-      ? {
-          uid: dto.assignee.uid,
-          displayName: dto.assignee.displayName ?? dto.assignee.display_name ?? '',
-          avatarUrl: dto.assignee.avatarUrl ?? dto.assignee.avatar_url,
-        }
+    assignee: dto.assignments?.length
+      ? { uid: dto.assignments[dto.assignments.length - 1].user_id, displayName: dto.assignments[dto.assignments.length - 1].user_id }
       : { uid: '', displayName: 'Unassigned' },
   }
 }

@@ -19,7 +19,7 @@ export function useRegister() {
     },
     onSuccess: ({ loginData, email }) => {
       const uid = getUidFromToken(loginData.idToken)
-      setAuth(loginData.idToken, uid, email)
+      setAuth(loginData.idToken, uid, email, loginData.refreshToken)
     },
     onError: () => {
       toast.error('Registration failed. Please try again.')
