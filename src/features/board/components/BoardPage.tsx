@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useBoardTasks } from '../hooks/useBoardTasks'
 import { useSSE } from '../hooks/useSSE'
@@ -8,6 +8,7 @@ import { SSEStatusIndicator } from './SSEStatusIndicator'
 import { PresenceBar } from './PresenceBar'
 import { TaskDetailPanel } from '../../tasks/components/TaskDetailPanel'
 import { useAuthStore } from '../../../store/authStore'
+import { useBoardTaskEvents } from '../hooks/useBoardTaskEvents'
 
 function BoardSkeleton() {
   return (
@@ -31,10 +32,16 @@ export function BoardPage() {
   const uid = useAuthStore((s) => s.uid)
   const { data: tasks, isLoading, isError } = useBoardTasks(workspaceId)
   const { presentUserIds, handleConnected, handleJoined, handleLeft } = usePresence(workspaceId)
+  const closePanel = useCallback(() => setSelectedTaskId(null), [])
+  const taskEvents = useBoardTaskEvents(workspaceId, selectedTaskId, closePanel)
   const { status: sseStatus } = useSSE(workspaceId, {
-    onConnected:      handleConnected,
-    onPresenceJoined: handleJoined,
-    onPresenceLeft:   handleLeft,
+    onConnected:         handleConnected,
+    onPresenceJoined:    handleJoined,
+    onPresenceLeft:      handleLeft,
+    onTaskCreated:       taskEvents.onTaskCreated,
+    onTaskUpdated:       taskEvents.onTaskUpdated,
+    onTaskStatusChanged: taskEvents.onTaskStatusChanged,
+    onTaskDeleted:       taskEvents.onTaskDeleted,
   })
 
   return (

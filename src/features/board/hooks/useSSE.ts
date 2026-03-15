@@ -8,9 +8,13 @@ import { refreshAuth } from '../../../lib/refreshAuth'
 type SSEStatus = 'connecting' | 'connected' | 'disconnected'
 
 type SSECallbacks = {
-  onConnected?:      (presentUserIds: string[]) => void
-  onPresenceJoined?: (userId: string) => void
-  onPresenceLeft?:   (userId: string) => void
+  onConnected?:          (presentUserIds: string[]) => void
+  onPresenceJoined?:     (userId: string) => void
+  onPresenceLeft?:       (userId: string) => void
+  onTaskCreated?:        (taskId: string) => void
+  onTaskUpdated?:        (taskId: string) => void
+  onTaskStatusChanged?:  (taskId: string, newStatus: string) => void
+  onTaskDeleted?:        (taskId: string) => void
 }
 
 export function useSSE(workspaceId: string, callbacks: SSECallbacks = {}) {
@@ -77,6 +81,22 @@ export function useSSE(workspaceId: string, callbacks: SSECallbacks = {}) {
 
       es.addEventListener('presence-left', (e: MessageEvent) => {
         try { callbacksRef.current.onPresenceLeft?.(JSON.parse(e.data).userId) } catch {}
+      })
+
+      es.addEventListener('task-created', (e: MessageEvent) => {
+        try { callbacksRef.current.onTaskCreated?.(JSON.parse(e.data).taskId) } catch {}
+      })
+      es.addEventListener('task-updated', (e: MessageEvent) => {
+        try { callbacksRef.current.onTaskUpdated?.(JSON.parse(e.data).taskId) } catch {}
+      })
+      es.addEventListener('task-status-changed', (e: MessageEvent) => {
+        try {
+          const { taskId, newStatus } = JSON.parse(e.data)
+          callbacksRef.current.onTaskStatusChanged?.(taskId, newStatus)
+        } catch {}
+      })
+      es.addEventListener('task-deleted', (e: MessageEvent) => {
+        try { callbacksRef.current.onTaskDeleted?.(JSON.parse(e.data).taskId) } catch {}
       })
 
       es.onerror = () => {
