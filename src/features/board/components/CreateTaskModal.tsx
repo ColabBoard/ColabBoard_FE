@@ -39,7 +39,7 @@ export function CreateTaskModal({ workspaceId, initialStatus, onClose }: Props) 
         workspace_id: workspaceId,
         status: STATUS_TO_API[status],
         priority,
-        due_date: dueDate || null,
+        due_date: dueDate ? `${dueDate}T00:00:00Z` : null,
       },
       { onSuccess: onClose },
     )
