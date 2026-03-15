@@ -23,6 +23,7 @@ export interface TaskApiDto {
 }
 
 const STATUS_FROM_API: Record<string, TaskStatus> = {
+  pending: 'TODO',
   todo: 'TODO',
   in_progress: 'DOING',
   done: 'DONE',

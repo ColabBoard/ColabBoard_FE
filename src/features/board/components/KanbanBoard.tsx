@@ -10,6 +10,7 @@ import {
 } from '@dnd-kit/core'
 import { KanbanColumn } from './KanbanColumn'
 import { TaskCard } from './TaskCard'
+import { CreateTaskModal } from './CreateTaskModal'
 import { useUpdateTaskStatus } from '../hooks/useUpdateTaskStatus'
 import type { Task, TaskStatus } from '../types'
 
@@ -23,6 +24,7 @@ interface Props {
 
 export function KanbanBoard({ workspaceId, tasks, onOpenDetail }: Props) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [addingToColumn, setAddingToColumn] = useState<TaskStatus | null>(null)
   const updateStatus = useUpdateTaskStatus(workspaceId)
 
   const sensors = useSensors(
@@ -68,9 +70,18 @@ export function KanbanBoard({ workspaceId, tasks, onOpenDetail }: Props) {
             status={status}
             tasks={tasks[status]}
             onOpenDetail={onOpenDetail}
+            onAddTask={() => setAddingToColumn(status)}
           />
         ))}
       </div>
+
+      {addingToColumn && (
+        <CreateTaskModal
+          workspaceId={workspaceId}
+          initialStatus={addingToColumn}
+          onClose={() => setAddingToColumn(null)}
+        />
+      )}
 
       <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeTask && (

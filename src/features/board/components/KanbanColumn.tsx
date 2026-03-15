@@ -19,9 +19,10 @@ interface Props {
   status: TaskStatus
   tasks: Task[]
   onOpenDetail: (id: string) => void
+  onAddTask: () => void
 }
 
-export function KanbanColumn({ status, tasks, onOpenDetail }: Props) {
+export function KanbanColumn({ status, tasks, onOpenDetail, onAddTask }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
   const meta = columnMeta[status]
   const key = meta.cssKey
@@ -53,6 +54,35 @@ export function KanbanColumn({ status, tasks, onOpenDetail }: Props) {
         <span className="font-outfit" style={{ fontSize: '0.75rem', color: 'var(--cb-dim)', marginLeft: '0.125rem' }}>
           {tasks.length}
         </span>
+        <button
+          onClick={onAddTask}
+          title="Add task"
+          style={{
+            marginLeft: 'auto',
+            width: '22px', height: '22px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: '5px',
+            border: '1px solid var(--cb-border-sub)',
+            background: 'transparent',
+            color: 'var(--cb-dim)',
+            cursor: 'pointer',
+            fontSize: '1rem', lineHeight: 1,
+            transition: 'color 0.15s ease, border-color 0.15s ease, background 0.15s ease',
+            fontFamily: 'inherit',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = meta.dot
+            e.currentTarget.style.borderColor = meta.dot
+            e.currentTarget.style.background = `color-mix(in srgb, ${meta.dot} 10%, transparent)`
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--cb-dim)'
+            e.currentTarget.style.borderColor = 'var(--cb-border-sub)'
+            e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          +
+        </button>
       </div>
 
       {/* Drop zone — uses CSS vars for theme-aware column glows */}
