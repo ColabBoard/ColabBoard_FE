@@ -9,7 +9,7 @@ function BrandPanel() {
 
   return (
     <div
-      className="hidden lg:flex flex-col justify-between p-10 relative overflow-hidden"
+      className="hidden lg:flex flex-col justify-between p-10 relative overflow-hidden h-full"
       style={{
         background: isDark
           ? `radial-gradient(ellipse 70% 60% at 20% 50%, rgba(124,110,250,0.18) 0%, transparent 65%),
@@ -82,7 +82,7 @@ export function LoginPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--cb-bg)' }}>
-      <div className="lg:w-[55%]">
+      <div className="lg:w-[55%] h-full">
         <BrandPanel />
       </div>
 
