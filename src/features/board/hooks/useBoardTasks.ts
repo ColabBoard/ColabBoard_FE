@@ -11,7 +11,7 @@ export function useBoardTasks(workspaceId: string) {
         params: { workspace_id: workspaceId },
       })
       const grouped: Record<TaskStatus, Task[]> = { TODO: [], DOING: [], DONE: [] }
-      for (const dto of res.data.data) {
+      for (const dto of res.data.data ?? []) {
         const task = mapTask(dto)
         grouped[task.status].push(task)
       }
