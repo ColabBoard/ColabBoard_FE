@@ -5,6 +5,9 @@ import type { Workspace } from '../types'
 export function useWorkspaces() {
   return useQuery<Workspace[]>({
     queryKey: ['workspaces'],
-    queryFn: () => apiClient.get<Workspace[]>('/workspaces').then((r) => r.data),
+    queryFn: () =>
+      apiClient
+        .get<{ workspaces: Workspace[] }>('/workspaces')
+        .then((r) => r.data.workspaces),
   })
 }

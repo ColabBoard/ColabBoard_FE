@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import apiClient from '../../../api/apiClient'
+import { mapTask, STATUS_TO_API, type TaskApiDto } from '../../tasks/api/taskMapper'
 import type { Task, TaskStatus } from '../types'
 
 export function useUpdateTaskStatus(workspaceId: string) {
@@ -8,8 +9,13 @@ export function useUpdateTaskStatus(workspaceId: string) {
   const queryKey = ['tasks', workspaceId]
 
   return useMutation({
-    mutationFn: ({ taskId, status }: { taskId: string; status: TaskStatus }) =>
-      apiClient.patch<Task>(`/tasks/${taskId}/status`, { status }).then((r) => r.data),
+    mutationFn: ({ taskId, status, version }: { taskId: string; status: TaskStatus; version: number }) =>
+      apiClient
+        .patch<{ data: TaskApiDto }>(`/tasks/${taskId}/status`, {
+          status: STATUS_TO_API[status],
+          version,
+        })
+        .then((r) => mapTask(r.data.data)),
 
     onMutate: async ({ taskId, status }) => {
       await queryClient.cancelQueries({ queryKey })

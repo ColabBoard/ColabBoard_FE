@@ -54,7 +54,8 @@ export function KanbanBoard({ workspaceId, tasks, onOpenDetail }: Props) {
 
     const currentStatus = findColumn(taskId)
     if (currentStatus !== targetStatus) {
-      updateStatus.mutate({ taskId, status: targetStatus })
+      const task = findTask(taskId)
+      updateStatus.mutate({ taskId, status: targetStatus, version: task?.version ?? 0 })
     }
   }
 

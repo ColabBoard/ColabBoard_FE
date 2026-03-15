@@ -8,6 +8,5 @@ export interface TaskHistory {
 export interface UpdateTaskRequest {
   title: string
   description: string
-  status: string
-  assignee: { uid: string; displayName: string; avatarUrl?: string }
+  version: number
 }

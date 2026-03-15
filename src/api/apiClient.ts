@@ -6,9 +6,12 @@ const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
-  const idToken = useAuthStore.getState().idToken
+  const { idToken, uid } = useAuthStore.getState()
   if (idToken) {
     config.headers.Authorization = `Bearer ${idToken}`
+  }
+  if (uid) {
+    config.headers['X-User-Id'] = uid
   }
   return config
 })

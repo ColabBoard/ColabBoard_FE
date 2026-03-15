@@ -1,38 +1,31 @@
 export interface WorkspaceMock {
   id: string
   name: string
-  description: string
-  memberCount: number
-  createdAt: string
+  ownerId: string
 }
 
 export const workspaces: WorkspaceMock[] = [
-  {
-    id: 'ws-1',
-    name: 'Frontend Redesign',
-    description: 'Revamping the UI across all product surfaces',
-    memberCount: 5,
-    createdAt: '2026-01-10T09:00:00Z',
-  },
-  {
-    id: 'ws-2',
-    name: 'Backend API v2',
-    description: 'Migrating endpoints to the new service architecture',
-    memberCount: 3,
-    createdAt: '2026-01-18T11:30:00Z',
-  },
-  {
-    id: 'ws-3',
-    name: 'Mobile App Launch',
-    description: 'Coordinating tasks for the Q2 mobile release',
-    memberCount: 7,
-    createdAt: '2026-02-01T08:15:00Z',
-  },
-  {
-    id: 'ws-4',
-    name: 'Data Pipeline',
-    description: 'Building ETL workflows for the analytics platform',
-    memberCount: 4,
-    createdAt: '2026-02-20T14:00:00Z',
-  },
+  { id: 'ws-1', name: 'Frontend Redesign', ownerId: 'user-123' },
+  { id: 'ws-2', name: 'Backend API v2',    ownerId: 'user-123' },
+  { id: 'ws-3', name: 'Mobile App Launch', ownerId: 'user-456' },
+  { id: 'ws-4', name: 'Data Pipeline',     ownerId: 'user-789' },
 ]
+
+export const membersByWorkspace: Record<string, { userId: string; role: string }[]> = {
+  'ws-1': [
+    { userId: 'user-123', role: 'OWNER' },
+    { userId: 'user-456', role: 'ADMIN' },
+    { userId: 'user-789', role: 'MEMBER' },
+  ],
+  'ws-2': [
+    { userId: 'user-123', role: 'OWNER' },
+  ],
+  'ws-3': [
+    { userId: 'user-456', role: 'OWNER' },
+    { userId: 'user-123', role: 'MEMBER' },
+  ],
+  'ws-4': [
+    { userId: 'user-789', role: 'OWNER' },
+    { userId: 'user-123', role: 'MEMBER' },
+  ],
+}

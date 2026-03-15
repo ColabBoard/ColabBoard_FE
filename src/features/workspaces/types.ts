@@ -1,12 +1,25 @@
 export interface Workspace {
   id: string
   name: string
-  description: string
-  memberCount: number
-  createdAt: string
+  ownerId: string
 }
 
 export interface CreateWorkspaceRequest {
   name: string
-  description: string
+}
+
+export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER'
+
+export interface WorkspaceMember {
+  userId: string
+  role: MemberRole
+}
+
+export interface AddMemberRequest {
+  userId: string
+  role?: 'MEMBER' | 'ADMIN'
+}
+
+export interface UpdateMemberRoleRequest {
+  role: 'MEMBER' | 'ADMIN'
 }

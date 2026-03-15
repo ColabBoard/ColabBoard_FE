@@ -7,12 +7,11 @@ interface Props {
 
 export function CreateWorkspaceModal({ onClose }: Props) {
   const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
   const createWorkspace = useCreateWorkspace()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    createWorkspace.mutate({ name, description }, { onSuccess: onClose })
+    createWorkspace.mutate({ name }, { onSuccess: onClose })
   }
 
   return (
@@ -63,11 +62,15 @@ export function CreateWorkspaceModal({ onClose }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="cb-label">Workspace name</label>
-            <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="cb-input" placeholder="e.g. Product Design" autoFocus />
-          </div>
-          <div>
-            <label className="cb-label">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="cb-textarea" placeholder="What is this workspace for?" />
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="cb-input"
+              placeholder="e.g. Product Design"
+              autoFocus
+            />
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.625rem', paddingTop: '0.25rem' }}>
             <button type="button" onClick={onClose} className="cb-btn-ghost">Cancel</button>
