@@ -9,7 +9,7 @@ function BrandPanel() {
 
   return (
     <div
-      className="hidden lg:flex flex-col justify-between p-10 relative overflow-hidden h-full"
+      className="hidden lg:flex flex-1 flex-col justify-between p-10 relative"
       style={{
         background: isDark
           ? `radial-gradient(ellipse 70% 60% at 20% 50%, rgba(124,110,250,0.18) 0%, transparent 65%),
@@ -38,8 +38,8 @@ function BrandPanel() {
 
       <div className="relative z-10 space-y-5">
         <p
-          className="font-syne font-bold leading-tight"
-          style={{ fontSize: '2.75rem', letterSpacing: '-0.03em', color: 'var(--cb-text)' }}
+          className="font-syne font-bold"
+          style={{ fontSize: '2.75rem', lineHeight: 1.2, letterSpacing: '-0.03em', color: 'var(--cb-text)' }}
         >
           Where teams<br />
           <span style={{ color: 'var(--cb-accent)' }}>build</span> together.
@@ -81,8 +81,8 @@ export function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--cb-bg)' }}>
-      <div className="lg:w-[55%] h-full">
+    <div style={{ height: '100vh', display: 'flex', background: 'var(--cb-bg)' }}>
+      <div className="lg:w-[55%] flex flex-col">
         <BrandPanel />
       </div>
 
