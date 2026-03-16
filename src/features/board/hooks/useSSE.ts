@@ -24,6 +24,33 @@ export function useSSE(workspaceId: string, callbacks: SSECallbacks = {}) {
   const callbacksRef = useRef(callbacks)
   useEffect(() => { callbacksRef.current = callbacks })
 
+  // Holds the token that was used to open the current connection.
+  // Using a ref (not the store) so that the value survives clearAuth() being
+  // called before the component unmounts (e.g. during sign-out).
+  const activeTokenRef = useRef<string | null>(null)
+
+  // Extracted so both the cleanup and the beforeunload handler share the same logic.
+  const sendLeaveRef = useRef<() => void>(() => {})
+  useEffect(() => {
+    sendLeaveRef.current = () => {
+      const token = activeTokenRef.current
+      if (!token || !workspaceId) return
+      fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/presence/${workspaceId}?token=${token}`,
+        { method: 'DELETE', keepalive: true }
+      ).catch(() => {})
+    }
+  }, [workspaceId])
+
+  // Fire departure on tab/browser close.
+  // React's useEffect cleanup does NOT run on tab/browser close; beforeunload does.
+  useEffect(() => {
+    if (!workspaceId) return
+    const handleUnload = () => sendLeaveRef.current()
+    window.addEventListener('beforeunload', handleUnload)
+    return () => window.removeEventListener('beforeunload', handleUnload)
+  }, [workspaceId])
+
   useEffect(() => {
     if (!workspaceId) return
 
@@ -44,6 +71,10 @@ export function useSSE(workspaceId: string, callbacks: SSECallbacks = {}) {
         }
       }
       if (cancelled) return
+
+      // Capture the token before opening the connection so the cleanup can use
+      // it even if clearAuth() has been called in the meantime.
+      activeTokenRef.current = token
 
       const url = `${import.meta.env.VITE_API_BASE_URL}/stream?workspaceId=${workspaceId}&token=${token}`
       const es = new EventSource(url)
@@ -70,6 +101,8 @@ export function useSSE(workspaceId: string, callbacks: SSECallbacks = {}) {
           } else if (payload.reason === 'server_shutdown') {
             toast.info('Server restarting — reconnecting…')
           }
+          // session_expired: server rotated a stale connection — EventSource
+          // reconnects automatically after the retry interval, no user-visible noise.
         } catch {
           // ignore malformed events
         }
@@ -116,14 +149,9 @@ export function useSSE(workspaceId: string, callbacks: SSECallbacks = {}) {
     return () => {
       cancelled = true
       esRef.current?.close()
-      // Signal departure immediately so other windows update without waiting for disconnect detection
-      const token = useAuthStore.getState().idToken
-      if (token && workspaceId) {
-        fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/presence/${workspaceId}?token=${token}`,
-          { method: 'DELETE', keepalive: true }
-        ).catch(() => {})
-      }
+      // Uses activeTokenRef so this works even when clearAuth() was called first
+      // (e.g. sign-out navigates away before the component fully unmounts).
+      sendLeaveRef.current()
     }
   }, [workspaceId, navigate])
 
