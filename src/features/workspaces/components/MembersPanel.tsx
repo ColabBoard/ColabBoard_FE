@@ -4,6 +4,7 @@ import type { Workspace, MemberRole } from '../types'
 import { useWorkspaceMembers } from '../hooks/useWorkspaceMembers'
 import { useAddMember } from '../hooks/useAddMember'
 import { useUpdateMemberRole } from '../hooks/useUpdateMemberRole'
+import { useRemoveMember } from '../hooks/useRemoveMember'
 import { useMemberProfiles } from '../../profile/hooks/useProfileById'
 
 const ROLE_COLORS: Record<MemberRole, { bg: string; color: string }> = {
@@ -24,8 +25,9 @@ export function MembersPanel({ workspace, isOwner, onClose }: Props) {
   const [showHint, setShowHint] = useState(false)
 
   const { data: members, isLoading } = useWorkspaceMembers(workspace.id)
-  const addMember  = useAddMember(workspace.id)
-  const updateRole = useUpdateMemberRole(workspace.id)
+  const addMember    = useAddMember(workspace.id)
+  const updateRole   = useUpdateMemberRole(workspace.id)
+  const removeMember = useRemoveMember(workspace.id)
   const { profileMap } = useMemberProfiles(members?.map((m) => m.userId) ?? [])
 
   const handleAdd = (e: React.FormEvent) => {
@@ -188,6 +190,41 @@ export function MembersPanel({ workspace, isOwner, onClose }: Props) {
                         }}>
                           {member.role.charAt(0) + member.role.slice(1).toLowerCase()}
                         </span>
+                      )}
+
+                      {/* Remove button — owner only, not for the OWNER role */}
+                      {isOwner && member.role !== 'OWNER' && (
+                        <button
+                          onClick={() => removeMember.mutate(member.userId)}
+                          disabled={removeMember.isPending}
+                          title="Remove member"
+                          style={{
+                            width: '26px', height: '26px', borderRadius: '6px', flexShrink: 0,
+                            border: '1px solid var(--cb-border-sub)',
+                            background: 'transparent',
+                            color: 'var(--cb-dim)',
+                            cursor: removeMember.isPending ? 'not-allowed' : 'pointer',
+                            opacity: removeMember.isPending ? 0.4 : 1,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'color 0.15s ease, border-color 0.15s ease, background 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!removeMember.isPending) {
+                              e.currentTarget.style.color = 'var(--cb-rose)'
+                              e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--cb-rose) 40%, transparent)'
+                              e.currentTarget.style.background = 'color-mix(in srgb, var(--cb-rose) 8%, transparent)'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = 'var(--cb-dim)'
+                            e.currentTarget.style.borderColor = 'var(--cb-border-sub)'
+                            e.currentTarget.style.background = 'transparent'
+                          }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+                            <path d="M2 3h8M5 3V2h2v1M4.5 5v4M7.5 5v4M3 3l.5 7h5l.5-7" />
+                          </svg>
+                        </button>
                       )}
                     </div>
                   )
