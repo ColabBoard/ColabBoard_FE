@@ -58,6 +58,17 @@ export const workspaceHandlers = [
     return HttpResponse.json({ workspaceId: wsId, userId: params.memberUserId, role: body.role })
   }),
 
+  // Remove member
+  http.delete(`${base}/workspaces/:id/members/:memberUserId`, ({ params }) => {
+    const wsId = params.id as string
+    const members = membersByWorkspace[wsId]
+    if (!members) return HttpResponse.json({ error: 'Workspace not found' }, { status: 404 })
+    const idx = members.findIndex((m) => m.userId === params.memberUserId)
+    if (idx === -1) return HttpResponse.json({ error: 'Member not found' }, { status: 404 })
+    members.splice(idx, 1)
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   // Delete workspace
   http.delete(`${base}/workspaces/:id`, ({ params }) => {
     const idx = workspaces.findIndex((w) => w.id === params.id)
