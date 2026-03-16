@@ -7,7 +7,7 @@ export function useRemoveMember(workspaceId: string) {
 
   return useMutation({
     mutationFn: (memberUserId: string) =>
-      apiClient.delete(`/workspaces/${workspaceId}/members/${memberUserId}`),
+      apiClient.post(`/auth/revoke/${memberUserId}`, { workspaceId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace-members', workspaceId] })
       toast.success('Member removed.')
