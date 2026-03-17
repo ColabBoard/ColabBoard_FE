@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import type { Workspace, MemberRole } from '../types'
 import { useWorkspaceMembers } from '../hooks/useWorkspaceMembers'
 import { useAddMember } from '../hooks/useAddMember'
+import { useInviteMember } from '../hooks/useInviteMember'
 import { useUpdateMemberRole } from '../hooks/useUpdateMemberRole'
 import { useRemoveMember } from '../hooks/useRemoveMember'
 import { useMemberProfiles } from '../../profile/hooks/useProfileById'
@@ -23,12 +24,24 @@ export function MembersPanel({ workspace, isOwner, onClose }: Props) {
   const [newUserId, setNewUserId] = useState('')
   const [newRole, setNewRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER')
   const [showHint, setShowHint] = useState(false)
+  const [addMode, setAddMode] = useState<'userId' | 'email'>('userId')
+  const [inviteEmail, setInviteEmail] = useState('')
 
   const { data: members, isLoading } = useWorkspaceMembers(workspace.id)
   const addMember    = useAddMember(workspace.id)
+  const inviteMember = useInviteMember(workspace.id)
   const updateRole   = useUpdateMemberRole(workspace.id)
   const removeMember = useRemoveMember(workspace.id)
   const { profileMap } = useMemberProfiles(members?.map((m) => m.userId) ?? [])
+
+  const handleInvite = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inviteEmail.trim()) return
+    inviteMember.mutate(
+      { email: inviteEmail.trim(), role: newRole },
+      { onSuccess: () => setInviteEmail('') },
+    )
+  }
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()
@@ -233,8 +246,7 @@ export function MembersPanel({ workspace, isOwner, onClose }: Props) {
         </div>
 
         {/* Add member */}
-        <form
-          onSubmit={handleAdd}
+        <div
           style={{
             padding: '1.25rem 1.5rem',
             borderTop: '1px solid var(--cb-border-sub)',
@@ -242,109 +254,184 @@ export function MembersPanel({ workspace, isOwner, onClose }: Props) {
             flexShrink: 0,
           }}
         >
+          {/* Header row: title + tabs + hint */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <p className="font-syne font-semibold" style={{ fontSize: '0.875rem', color: 'var(--cb-text)', margin: 0 }}>
               Add member
             </p>
-            <div style={{ position: 'relative' }}>
-              <button
-                type="button"
-                onClick={() => setShowHint((v) => !v)}
-                title="Where do I find a User ID?"
-                style={{
-                  width: '22px', height: '22px', borderRadius: '50%',
-                  border: `1px solid ${showHint ? 'color-mix(in srgb, var(--cb-accent) 40%, transparent)' : 'var(--cb-border-sub)'}`,
-                  background: showHint ? 'color-mix(in srgb, var(--cb-accent) 8%, transparent)' : 'transparent',
-                  color: showHint ? 'var(--cb-accent)' : 'var(--cb-dim)',
-                  cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.6875rem', fontWeight: 700,
-                  fontFamily: "'Outfit', sans-serif",
-                  lineHeight: 1,
-                  transition: 'color 0.15s ease, border-color 0.15s ease, background 0.15s ease',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  if (!showHint) {
-                    e.currentTarget.style.color = 'var(--cb-accent)'
-                    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--cb-accent) 40%, transparent)'
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--cb-accent) 8%, transparent)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!showHint) {
-                    e.currentTarget.style.color = 'var(--cb-dim)'
-                    e.currentTarget.style.borderColor = 'var(--cb-border-sub)'
-                    e.currentTarget.style.background = 'transparent'
-                  }
-                }}
-              >
-                ?
-              </button>
-              {showHint && (
-                <div
-                  className="animate-fade-in"
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {/* Mode tabs */}
+              {(['userId', 'email'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => { setAddMode(mode); setShowHint(false) }}
                   style={{
-                    position: 'absolute', bottom: '30px', right: 0,
-                    width: '230px',
-                    background: 'var(--cb-surface2)',
-                    border: '1px solid var(--cb-border-vis)',
-                    borderRadius: '0.625rem',
-                    padding: '0.75rem 0.875rem',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                    zIndex: 10,
+                    padding: '0.1875rem 0.625rem',
+                    borderRadius: '999px',
+                    border: `1px solid ${addMode === mode ? 'color-mix(in srgb, var(--cb-accent) 40%, transparent)' : 'var(--cb-border-sub)'}`,
+                    background: addMode === mode ? 'color-mix(in srgb, var(--cb-accent) 10%, transparent)' : 'transparent',
+                    color: addMode === mode ? 'var(--cb-accent)' : 'var(--cb-dim)',
+                    fontSize: '0.6875rem', fontWeight: 600,
+                    fontFamily: "'Outfit', sans-serif",
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <p className="font-syne font-semibold" style={{ fontSize: '0.75rem', color: 'var(--cb-text)', margin: 0, marginBottom: '0.375rem' }}>
-                    Where to find a User ID?
-                  </p>
-                  <p className="font-outfit" style={{ fontSize: '0.6875rem', color: 'var(--cb-muted)', margin: 0, lineHeight: 1.6 }}>
-                    Each user can find their own User ID on their <strong style={{ color: 'var(--cb-text)' }}>Profile page</strong> — accessible by clicking their avatar in the top-right corner of the app.
-                  </p>
+                  {mode === 'userId' ? 'User ID' : 'Email'}
+                </button>
+              ))}
+
+              {/* Hint button — userId mode only */}
+              {addMode === 'userId' && (
+                <div style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowHint((v) => !v)}
+                    title="Where do I find a User ID?"
+                    style={{
+                      width: '22px', height: '22px', borderRadius: '50%',
+                      border: `1px solid ${showHint ? 'color-mix(in srgb, var(--cb-accent) 40%, transparent)' : 'var(--cb-border-sub)'}`,
+                      background: showHint ? 'color-mix(in srgb, var(--cb-accent) 8%, transparent)' : 'transparent',
+                      color: showHint ? 'var(--cb-accent)' : 'var(--cb-dim)',
+                      cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.6875rem', fontWeight: 700,
+                      fontFamily: "'Outfit', sans-serif",
+                      lineHeight: 1,
+                      transition: 'color 0.15s ease, border-color 0.15s ease, background 0.15s ease',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!showHint) {
+                        e.currentTarget.style.color = 'var(--cb-accent)'
+                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--cb-accent) 40%, transparent)'
+                        e.currentTarget.style.background = 'color-mix(in srgb, var(--cb-accent) 8%, transparent)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!showHint) {
+                        e.currentTarget.style.color = 'var(--cb-dim)'
+                        e.currentTarget.style.borderColor = 'var(--cb-border-sub)'
+                        e.currentTarget.style.background = 'transparent'
+                      }
+                    }}
+                  >
+                    ?
+                  </button>
+                  {showHint && (
+                    <div
+                      className="animate-fade-in"
+                      style={{
+                        position: 'absolute', bottom: '30px', right: 0,
+                        width: '230px',
+                        background: 'var(--cb-surface2)',
+                        border: '1px solid var(--cb-border-vis)',
+                        borderRadius: '0.625rem',
+                        padding: '0.75rem 0.875rem',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                        zIndex: 10,
+                      }}
+                    >
+                      <p className="font-syne font-semibold" style={{ fontSize: '0.75rem', color: 'var(--cb-text)', margin: 0, marginBottom: '0.375rem' }}>
+                        Where to find a User ID?
+                      </p>
+                      <p className="font-outfit" style={{ fontSize: '0.6875rem', color: 'var(--cb-muted)', margin: 0, lineHeight: 1.6 }}>
+                        Each user can find their own User ID on their <strong style={{ color: 'var(--cb-text)' }}>Profile page</strong> — accessible by clicking their avatar in the top-right corner of the app.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input
-              type="text"
-              value={newUserId}
-              onChange={(e) => setNewUserId(e.target.value)}
-              placeholder="User ID"
-              className="cb-input"
-              style={{ flex: 1, fontSize: '0.8125rem' }}
-            />
-            {isOwner && (
-              <select
-                value={newRole}
-                onChange={(e) => setNewRole(e.target.value as 'MEMBER' | 'ADMIN')}
-                className="cb-select"
-                style={{ fontSize: '0.8125rem', width: 'auto' }}
+
+          {/* User ID form */}
+          {addMode === 'userId' && (
+            <form onSubmit={handleAdd} style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="text"
+                value={newUserId}
+                onChange={(e) => setNewUserId(e.target.value)}
+                placeholder="User ID"
+                className="cb-input"
+                style={{ flex: 1, fontSize: '0.8125rem' }}
+              />
+              {isOwner && (
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value as 'MEMBER' | 'ADMIN')}
+                  className="cb-select"
+                  style={{ fontSize: '0.8125rem', width: 'auto' }}
+                >
+                  <option value="MEMBER">Member</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              )}
+              <button
+                type="submit"
+                disabled={addMember.isPending || !newUserId.trim()}
+                style={{
+                  padding: '0 1rem',
+                  background: 'var(--cb-accent)', color: 'white',
+                  border: 'none', borderRadius: '0.5rem',
+                  fontSize: '0.8125rem', fontWeight: 600,
+                  fontFamily: "'Outfit', sans-serif",
+                  cursor: addMember.isPending || !newUserId.trim() ? 'not-allowed' : 'pointer',
+                  opacity: addMember.isPending || !newUserId.trim() ? 0.5 : 1,
+                  whiteSpace: 'nowrap', transition: 'background 0.15s ease',
+                }}
+                onMouseEnter={(e) => { if (!addMember.isPending) e.currentTarget.style.background = 'var(--cb-accent-bright)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--cb-accent)' }}
               >
-                <option value="MEMBER">Member</option>
-                <option value="ADMIN">Admin</option>
-              </select>
-            )}
-            <button
-              type="submit"
-              disabled={addMember.isPending || !newUserId.trim()}
-              style={{
-                padding: '0 1rem',
-                background: 'var(--cb-accent)', color: 'white',
-                border: 'none', borderRadius: '0.5rem',
-                fontSize: '0.8125rem', fontWeight: 600,
-                fontFamily: "'Outfit', sans-serif",
-                cursor: addMember.isPending || !newUserId.trim() ? 'not-allowed' : 'pointer',
-                opacity: addMember.isPending || !newUserId.trim() ? 0.5 : 1,
-                whiteSpace: 'nowrap', transition: 'background 0.15s ease',
-              }}
-              onMouseEnter={(e) => { if (!addMember.isPending) e.currentTarget.style.background = 'var(--cb-accent-bright)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--cb-accent)' }}
-            >
-              {addMember.isPending ? 'Adding…' : 'Add'}
-            </button>
-          </div>
-        </form>
+                {addMember.isPending ? 'Adding…' : 'Add'}
+              </button>
+            </form>
+          )}
+
+          {/* Email invite form */}
+          {addMode === 'email' && (
+            <form onSubmit={handleInvite} style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="Email address"
+                className="cb-input"
+                style={{ flex: 1, fontSize: '0.8125rem' }}
+              />
+              {isOwner && (
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value as 'MEMBER' | 'ADMIN')}
+                  className="cb-select"
+                  style={{ fontSize: '0.8125rem', width: 'auto' }}
+                >
+                  <option value="MEMBER">Member</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              )}
+              <button
+                type="submit"
+                disabled={inviteMember.isPending || !inviteEmail.trim()}
+                style={{
+                  padding: '0 1rem',
+                  background: 'var(--cb-accent)', color: 'white',
+                  border: 'none', borderRadius: '0.5rem',
+                  fontSize: '0.8125rem', fontWeight: 600,
+                  fontFamily: "'Outfit', sans-serif",
+                  cursor: inviteMember.isPending || !inviteEmail.trim() ? 'not-allowed' : 'pointer',
+                  opacity: inviteMember.isPending || !inviteEmail.trim() ? 0.5 : 1,
+                  whiteSpace: 'nowrap', transition: 'background 0.15s ease',
+                }}
+                onMouseEnter={(e) => { if (!inviteMember.isPending) e.currentTarget.style.background = 'var(--cb-accent-bright)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--cb-accent)' }}
+              >
+                {inviteMember.isPending ? 'Sending…' : 'Invite'}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </>,
     document.body,

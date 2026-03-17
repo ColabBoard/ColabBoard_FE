@@ -77,4 +77,16 @@ export const workspaceHandlers = [
     delete membersByWorkspace[params.id as string]
     return HttpResponse.json({ message: 'Workspace deleted' })
   }),
+
+  // Send invitation
+  http.post(`${base}/invitations`, async () =>
+    HttpResponse.json({ message: 'Invitation sent (mock)' }, { status: 200 })
+  ),
+
+  // Accept invitation
+  http.get(`${base}/invitations/accept`, ({ request }) => {
+    const token = new URL(request.url).searchParams.get('token')
+    if (!token) return HttpResponse.json({ error: 'Token required' }, { status: 400 })
+    return HttpResponse.json({ workspaceId: 'ws-1' })
+  }),
 ]

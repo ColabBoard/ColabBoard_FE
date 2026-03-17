@@ -8,6 +8,7 @@ import { useAuthStore } from '../store/authStore'
 import { WorkspacesPage } from '../features/workspaces/components/WorkspacesPage'
 import { BoardPage } from '../features/board/components/BoardPage'
 import { ProfilePage } from '../features/profile/components/ProfilePage'
+import { AcceptInvitePage } from '../features/workspaces/components/AcceptInvitePage'
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -18,6 +19,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 export const router = createBrowserRouter([
   { path: '/login', element: <PublicRoute><LoginPage /></PublicRoute> },
   { path: '/register', element: <PublicRoute><RegisterPage /></PublicRoute> },
+  { path: '/invite/accept', element: <AcceptInvitePage /> },
   {
     path: '/',
     element: (
